@@ -6,16 +6,16 @@ import (
 	"sync/atomic"
 )
 
-func Run() {
+func main() {
 	var x atomic.Int32
 	var wg sync.WaitGroup
 	for i := 0; i < 1000; i++ {
 		wg.Add(1)
 		go func() {
-			x.Add(1) // Fixed: atomic operation
+			x.Add(1)
 			wg.Done()
 		}()
 	}
 	wg.Wait()
-	fmt.Println("final value of x", x.Load())
+	fmt.Println("final value of x:", x.Load())
 }
