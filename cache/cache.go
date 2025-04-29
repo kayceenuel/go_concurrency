@@ -19,3 +19,12 @@ type pair struct {
 	key   int
 	value int
 }
+
+// NewCache initializes the LRUCache with a given capacity
+func NewCache(capacity int) *Cache {
+	return &Cache{
+		capacity: capacity,
+		cache:    make(map[string]*list.Element),
+		list:     list.New(),
+	}
+}
