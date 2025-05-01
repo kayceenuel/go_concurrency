@@ -6,7 +6,7 @@ import (
 )
 
 // Cache represent a thread safe LRU cache
-type Cache struct {
+type LRUCache struct {
 	mu       sync.Mutex               //protects the cache form concurrency access
 	capacity int                      //Maximum capacity of the cache
 	cache    map[string]*list.Element // Maps key to elements
@@ -21,8 +21,8 @@ type Pair struct {
 }
 
 // NewCache initializes the LRUCache with a given capacity
-func NewCache(capacity int) *Cache {
-	return &Cache{
+func NewCache(capacity int) *LRUCache {
+	return &LRUCache{
 		capacity: capacity,
 		cache:    make(map[string]*list.Element),
 		list:     list.New(),
@@ -30,7 +30,7 @@ func NewCache(capacity int) *Cache {
 }
 
 // "Get" retrieves a value the cache
-func (c *Cache) Get(key string) (interface{}, bool) {
+func (c *LRUCache) Get(key string) (interface{}, bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if elem, ok := c.cache[key]; ok {
