@@ -46,10 +46,10 @@ func (c *LRUCache) Put(key string, value interface{}) {
 	defer c.mu.Unlock()
 	if elem, ok := c.cache[key]; ok {
 		c.list.MoveToFront(elem)
-		elem.value.(*Pair).value = value
+		elem.Value.(*Pair).value = value
 		return
 	}
-	if c.list.Len() >= c.cap {
+	if c.list.Len() >= c.capacity {
 		//Evict the LRU Items
 		lru := c.list.Back()
 		if lru != nil {
