@@ -57,5 +57,7 @@ func (c *LRUCache) Put(key string, value interface{}) {
 			delete(c.cache, lru.Value.(*Pair).key)
 		}
 	}
-
+	pair := &Pair{key: key, value: value}
+	elem := c.list.PushFront(pair)
+	c.cache[key] = elem
 }
