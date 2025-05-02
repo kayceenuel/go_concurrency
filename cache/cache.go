@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-// Cache represent a thread safe LRU cache
+// LRUCache represent a thread safe LRU cache
 type LRUCache struct {
 	mu       sync.Mutex               //protects the cache form concurrency access
 	capacity int                      //Maximum capacity of the cache
