@@ -19,6 +19,7 @@ func TestCacheBasic(t *testing.T) {
 	}
 }
 
+// TestCacheConcurrency tests thread safety with multiple goroutines accessing the cache concurrently.
 func TestCacheConcurrency(t *testing.T) {
 	c := NewCache(10)
 	var wg sync.WaitGroup
