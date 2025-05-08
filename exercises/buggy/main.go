@@ -1,29 +1,36 @@
-package exercises
+package main
 
 import (
 	"fmt"
 	"sync"
 )
 
-// RunBuggyIncrement demonstrates the problem with unsynchronized access
-func RunBuggyIncrement() {
+func main() {
+	// Run the buggy increment multiple times to show inconsistency
+	fmt.Println("Running buggy increment example 5 times:")
 	for i := 0; i < 5; i++ {
-		buggyIncrement()
+		fmt.Printf("Run %d: ", i+1)
+		runBuggyIncrement()
 	}
 }
 
-func buggyIncrement() {
+func runBuggyIncrement() {
 	var x = 0
-	var w sync.WaitGroup
+	var wg sync.WaitGroup
 
+	// Start 1000 goroutines that will each try to increment x
 	for i := 0; i < 1000; i++ {
-		w.Add(1)
+		wg.Add(1)
 		go func() {
 			x = x + 1 // This operation is not atomic!
-			w.Done()
+			wg.Done()
 		}()
 	}
-	w.Wait()
-	fmt.Println("Buggy increment result:", x)
+
+	// Wait for all goroutines to finish
+	wg.Wait()
+
+	// Print the final value - it should be 1000 if all increments were performed correctly
+	fmt.Println("final value of x:", x)
 	// Almost certainly won't be 1000 due to race conditions
 }
