@@ -1,63 +1,31 @@
 package cache
 
 import (
-	"container/list"
 	"sync"
 )
 
-// LRUCache represent a thread safe LRU cache
-type LRUCache struct {
-	mu       sync.Mutex               //protects the cache form concurrency access
-	capacity int                      //Maximum capacity of the cache
-	cache    map[string]*list.Element // Maps key to elements
-	list     *list.List               // Doubly linked list LRU order
-
+// Cache represents a thread safe LRU cache
+type Cahce[k comparable, V any] struct {
+	mu         sync.Mutex           // Mutex for thread safety
+	entryLimit int                  // Max num of entries in cache
+	items      map[k]*entry[V]      // map of cache entries
+	lruList    *doublyLinkedList[K] // list of entries in order of access
+	stats      *statistics          // stats for cache
 }
 
-// Pair stores key-value pairs
-type Pair struct {
-	key   string
-	value interface{}
+// entry represents a cache entry with its value and metadata
+type entry[V any] struct {
+	value          V    // value of the entry
+	accessCount    int  // number of times the entry has been accessed
+	readAfterWrite bool // true if write happened after read
 }
 
-// NewCache initializes the LRUCache with a given capacity
-func NewCache(capacity int) *LRUCache {
-	return &LRUCache{
-		capacity: capacity,
-		cache:    make(map[string]*list.Element),
-		list:     list.New(),
+// NewCahce creates a new LRU cache with the given entry limit
+func NewCahce[k comparable, V any](entryLimit int) *Cahce[k, V] {
+	return &Cahce[k, V]{
+		entryLimit: entryLimit,
+		items:      make(map[k]*entry[V]),
+		lruList:    newDoublyLinkedList[k](),
+		stats:      newStatistics(),
 	}
-}
-
-// "Get" retrieves a value the cache
-func (c *LRUCache) Get(key string) (interface{}, bool) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if elem, ok := c.cache[key]; ok {
-		c.list.MoveToFront(elem)
-		return elem.Value.(*Pair).value, true
-	}
-	return nil, false
-
-}
-
-func (c *LRUCache) Put(key string, value interface{}) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if elem, ok := c.cache[key]; ok {
-		c.list.MoveToFront(elem)
-		elem.Value.(*Pair).value = value
-		return
-	}
-	if c.list.Len() >= c.capacity {
-		//Evict the LRU Items
-		lru := c.list.Back()
-		if lru != nil {
-			c.list.Remove(lru)
-			delete(c.cache, lru.Value.(*Pair).key)
-		}
-	}
-	pair := &Pair{key: key, value: value}
-	elem := c.list.PushFront(pair)
-	c.cache[key] = elem
 }
