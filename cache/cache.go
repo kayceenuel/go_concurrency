@@ -74,3 +74,29 @@ func (c *Cache[K, V]) Put(key K, value V) bool {
 
 	return false
 }
+
+// Get returns the value assiocated with the passed key, and a boolean to indicate
+// whether a value was known or not
+
+func (c *Cache[K, V]) Get(key K) (*V, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.stats.IncrementReads()
+
+	entry, exists := c.items[key]
+	if !exists {
+		c.stats.IncrementMisses()
+		return nil, false
+	}
+
+	// Update entry metadata
+	entry.accessCount++
+	entry.readAfterWrite = true
+
+	// Move to front of LRU list (most recently used)
+	c.lruList.moveToFront(key)
+
+	c.stats.IncrementHits()
+	return &entry.value, true
+}
