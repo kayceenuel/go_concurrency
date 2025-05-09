@@ -102,11 +102,29 @@ func (c *Cache[K, V]) Get(key K) (*V, bool) {
 }
 
 // GetStatistics returns consistent statistics about the cache
-func (c *Cache[K, V] GetStatistics() Statistics  {
+func (c *Cache[K, V]) GetStatistics() Statistics {
 	c.mu.Lock()
-	defer c.mu.Unlock() 
+	defer c.mu.Unlock()
 
 	// Create a copy of the current statistics
 	stats := *c.stats
 
-})
+	// Calculate average access count for current items
+	if len(c.items) > 0 {
+		totalAccesses := 0
+		for _, e := range c.items {
+			totalAccesses += e.accessCount
+		}
+		stats.AverageAccessCount = float64(totalAccesses) / float64(len(c.items))
+	}
+
+	currentNeverRead := 0
+	for _, e := range c.items {
+		if !e.readAfterWrite {
+			currentNeverRead++
+		}
+	}
+	stats.CurrentNeverRead = currentNeverRead
+
+	return stats
+}
