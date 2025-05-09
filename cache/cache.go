@@ -128,3 +128,17 @@ func (c *Cache[K, V]) GetStatistics() Statistics {
 
 	return stats
 }
+
+// Node for out doubly linked list
+type node[K comparable] struct {
+	key  K
+	prev *node[K]
+	next *node[K]
+}
+
+// doublyLinkedlist implement a doubly Linked list for LRU tracking
+type doublyLinkedList[K comparable] struct {
+	head    *node[K]
+	tail    *node[K]
+	nodeMap map[K]*node[K] // for O(1) lookups
+}
