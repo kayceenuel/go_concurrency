@@ -200,3 +200,28 @@ func (l *doublyLinkedList[K]) moveToFront(key K) {
 	l.head.prev = node
 	l.head = node
 }
+
+// removeLast removes and returns the key at the end of the list (least recently used)
+func (l *doublyLinkedList[K]) removeLast() K {
+	if l.tail == nil {
+		var zero K
+		return zero
+	}
+
+	lastKey := l.tail.key
+
+	//udpate tail
+	l.tail = l.tail.prev
+
+	// if this was the last node
+	if l.tail == nil {
+		l.head = nil
+	} else {
+		l.tail.next = nil
+	}
+
+	// remove from map
+	delete(l.nodeMap, lastKey)
+
+	return lastKey
+}
