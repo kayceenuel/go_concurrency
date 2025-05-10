@@ -148,3 +148,23 @@ func newDoublyLinkedList[k comparable]() *doublyLinkedList[k] {
 		nodeMap: make(map[k]*node[k]),
 	}
 }
+
+// addToFront adds a key to the front of the list (most recenly used)
+func (l *doublyLinkedList[K]) addToFront(key K) {
+	newNode := &node[K]{key: key}
+
+	// Map the key to its node for quick lookup
+	l.nodeMap[key] = newNode
+
+	if l.head == nil {
+		// List is empty
+		l.head = newNode
+		l.tail = newNode
+		return
+	}
+
+	// Add to head
+	newNode.next = l.head
+	l.head.prev = newNode
+	l.head = newNode
+}
