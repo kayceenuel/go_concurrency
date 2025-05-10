@@ -170,14 +170,33 @@ func (l *doublyLinkedList[K]) addToFront(key K) {
 }
 
 // moveToFront moves a node to the front of the list
-func (l *doublyLinkedList[K]) moveToFront(Key K) {
-	node, exists := l.nodeMap[Key]
+func (l *doublyLinkedList[K]) moveToFront(key K) {
+	node, exists := l.nodeMap[key]
 	if !exists {
 		return
 	}
 
-	// ALready at front
+	// Already at front
 	if node == l.head {
 		return
 	}
+
+	// Remove from current position
+	if node == l.tail {
+		l.tail = node.prev
+	}
+
+	if node.prev != nil {
+		node.prev.next = node.next
+	}
+
+	if node.next != nil {
+		node.next.prev = node.prev
+	}
+
+	// Add to front
+	node.prev = nil
+	node.next = l.head
+	l.head.prev = node
+	l.head = node
 }
