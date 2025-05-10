@@ -5,12 +5,12 @@ import (
 )
 
 // Cache represents a thread safe LRU cache
-type Cache[k comparable, V any] struct {
-	mu         sync.Mutex           // Mutex for thread safety
-	entryLimit int                  // Max num of entries in cache
-	items      map[k]*entry[V]      // map of cache entries
-	lruList    *doublyLinkedList[K] // list of entries in order of access
-	stats      *Statistics          // stats for cache
+type Cache[K comparable, V any] struct {
+	mu         sync.Mutex
+	entryLimit int
+	items      map[K]*entry[V]
+	lruList    *doublyLinkedList[K]
+	stats      *statistics
 }
 
 // entry represents a cache entry with its value and metadata
@@ -21,11 +21,11 @@ type entry[V any] struct {
 }
 
 // NewCahce creates a new LRU cache with the given entry limit
-func NewCahce[k comparable, V any](entryLimit int) *Cache[k, V] {
-	return &Cache[k, V]{
+func NewCache[K comparable, V any](entryLimit int) *Cache[K, V] {
+	return &Cache[K, V]{
 		entryLimit: entryLimit,
-		items:      make(map[k]*entry[V]),
-		lruList:    newDoublyLinkedList[k](),
+		items:      make(map[K]*entry[V]),
+		lruList:    newDoublyLinkedList[K](),
 		stats:      newStatistics(),
 	}
 }
@@ -45,7 +45,7 @@ func (c *Cache[K, V]) Put(key K, value V) bool {
 		existingEntry.value = value
 		existingEntry.readAfterWrite = false
 		// move to front of LRU list (most recently used)
-		c.lruList.moveTofront(key)
+		c.lruList.moveToFront(key)
 		return true
 	}
 
@@ -102,7 +102,7 @@ func (c *Cache[K, V]) Get(key K) (*V, bool) {
 }
 
 // GetStatistics returns consistent statistics about the cache
-func (c *Cache[K, V]) GetStatistics() Statistics {
+func (c *Cache[K, V]) GetStatistics() statistics {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -118,6 +118,7 @@ func (c *Cache[K, V]) GetStatistics() Statistics {
 		stats.AverageAccessCount = float64(totalAccesses) / float64(len(c.items))
 	}
 
+	// Count never-read entries in current cache
 	currentNeverRead := 0
 	for _, e := range c.items {
 		if !e.readAfterWrite {
@@ -129,23 +130,23 @@ func (c *Cache[K, V]) GetStatistics() Statistics {
 	return stats
 }
 
-// Node for out doubly linked list
+// Node for our doubly linked list
 type node[K comparable] struct {
 	key  K
 	prev *node[K]
 	next *node[K]
 }
 
-// doublyLinkedlist implement a doubly Linked list for LRU tracking
+// doublyLinkedList implements a doubly linked list for LRU tracking
 type doublyLinkedList[K comparable] struct {
 	head    *node[K]
 	tail    *node[K]
-	nodeMap map[K]*node[K] // for O(1) lookups
+	nodeMap map[K]*node[K] // For O(1) lookups
 }
 
-func newDoublyLinkedList[k comparable]() *doublyLinkedList[k] {
-	return &doublyLinkedList[k]{
-		nodeMap: make(map[k]*node[k]),
+func newDoublyLinkedList[K comparable]() *doublyLinkedList[K] {
+	return &doublyLinkedList[K]{
+		nodeMap: make(map[K]*node[K]),
 	}
 }
 
