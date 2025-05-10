@@ -142,3 +142,9 @@ type doublyLinkedList[K comparable] struct {
 	tail    *node[K]
 	nodeMap map[K]*node[K] // for O(1) lookups
 }
+
+func newDoublyLinkedList[k comparable]() *doublyLinkedList[k] {
+	return &doublyLinkedList[k]{
+		nodeMap: make(map[k]*node[k]),
+	}
+}
