@@ -22,3 +22,38 @@ func NewRWMutexCache[K comparable, V any](entryLimit int) *RWMutexCache[K, V] {
 		stats:     newStatistics(),
 	}
 }
+
+// Put adds a value to the cache
+func (c *RWMutexCache[K, V]) Put(key K, value V) bool {
+	c.mu.Lock() // Need exclusive lock for writes
+	defer c.mu.Unlock()
+
+	c.stats.IncrementWrites()
+
+	//Implementation same as regular Cache.Put
+	existingEntry, exists := c.items[key]
+	if exists {
+		existingEntry.value = value
+		existingEntry.readAfterWrite = false
+		c.lrulist.moveToFront(key)
+		return true
+	}
+
+	if len(c.items) >= c.entryLimt && len(c.items) > 0 {
+		lruKey := c.lrulist.removeLast()
+		if !c.items[lruKey].readAfterWrite {
+			c.stats.IncrementNeverRead()
+		}
+		delete(c.items, lruKey)
+		c.stats.IncrementEvictions()
+	}
+
+	c.items[key] = &entry[V]{
+		value:          value,
+		accessCount:    0,
+		readAfterWrite: false,
+	}
+	c.lrulist.addToFront(key)
+
+	return false
+}
