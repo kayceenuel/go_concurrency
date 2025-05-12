@@ -12,3 +12,13 @@ type RWMutexCache[K comparable, V any] struct {
 	lrulist   *doublyLinkedList[K]
 	stats     *Statistics
 }
+
+// NewRWMutexCache creates a new LRU cache with RWMutex
+func NewRWMutexCache[K comparable, V any](entryLimit int) *RWMutexCache[K, V] {
+	return &RWMutexCache[K, V]{
+		entryLimt: entryLimit,
+		items:     make(map[K]*entry[V]),
+		lrulist:   newDoublyLinkedList[K](),
+		stats:     newStatistics(),
+	}
+}
