@@ -10,7 +10,7 @@ type Cache[K comparable, V any] struct {
 	entryLimit int
 	items      map[K]*entry[V]
 	lruList    *doublyLinkedList[K]
-	stats      *statistics
+	stats      *Statistics
 }
 
 // entry represents a cache entry with its value and metadata
@@ -102,7 +102,7 @@ func (c *Cache[K, V]) Get(key K) (*V, bool) {
 }
 
 // GetStatistics returns consistent statistics about the cache
-func (c *Cache[K, V]) GetStatistics() statistics {
+func (c *Cache[K, V]) GetStatistics() Statistics {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
