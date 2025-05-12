@@ -22,30 +22,37 @@ func newStatistics() *Statistics {
 	return &Statistics{}
 }
 
+// IncrementReads increments the read counter
 func (s *Statistics) IncrementReads() {
 	atomic.AddInt64(&s.Reads, 1)
 }
 
+// IncrementWrites increments the writes counter
 func (s *Statistics) IncrementWrites() {
 	atomic.AddInt64(&s.Writes, 1)
 }
 
+// IncrementHits increments the hits counter
 func (s *Statistics) IncrementHits() {
 	atomic.AddInt64(&s.Hits, 1)
 }
 
+// IncrementMisses increments the misses counter
 func (s *Statistics) IncrementMisses() {
 	atomic.AddInt64(&s.Misses, 1)
 }
 
+// IncrementEvictions increments the evictions counter
 func (s *Statistics) IncrementEvictions() {
 	atomic.AddInt64(&s.Evictions, 1)
 }
 
+// IncrementNeverRead increments the counter for evicted items that were never read
 func (s *Statistics) IncrementNeverRead() {
 	atomic.AddInt64(&s.NeverReadCount, 1)
 }
 
+// GetHitReate calculates the cache hit rate
 func (s *Statistics) GetHitRate() float64 {
 	reads := atomic.LoadInt64(&s.Reads)
 	if reads == 0 {
