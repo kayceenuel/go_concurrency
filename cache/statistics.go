@@ -6,12 +6,14 @@ import (
 
 // Statistics tracks cache usage statistics
 type Statistics struct {
-	Reads          int64 // Total number of read operations
-	Writes         int64 // Total number of write operations
-	Hits           int64 // Number of cache hits
-	Misses         int64 // Number of cache misses
-	Evictions      int64 // Number of entries evicted
-	NeverReadCount int64 //Total evicted items that were never read
+	Reads              int64   // Total number of read operations
+	Writes             int64   // Total number of write operations
+	Hits               int64   // Number of cache hits
+	Misses             int64   // Number of cache misses
+	Evictions          int64   // Number of entries evicted
+	NeverReadCount     int64   //Total evicted items that were never read
+	CurrentNeverRead   int     //Current items never read (calculated on demand)
+	AverageAccessCount float64 // Average access  count (calculated on demand)
 
 }
 
@@ -42,4 +44,13 @@ func (s *Statistics) IncrementEvictions() {
 
 func (s *Statistics) IncrementNeverRead() {
 	atomic.AddInt64(&s.NeverReadCount, 1)
+}
+
+func (s *Statistics) GetHitRate() float64 {
+	reads := atomic.LoadInt64(&s.Reads)
+	if reads == 0 {
+		return 0
+	}
+	hits := atomic.LoadInt64(&s.Hits)
+	return float64(hits) / float64(reads)
 }
