@@ -6,10 +6,12 @@ import (
 
 // Statistics tracks cache usage statistics
 type Statistics struct {
-	Reads  int64 // Total number of read operations
-	Writes int64 // Total number of write operations
-	Hits   int64 // Number of cache hits
-	Misses int64 // Number of cache misses
+	Reads     int64 // Total number of read operations
+	Writes    int64 // Total number of write operations
+	Hits      int64 // Number of cache hits
+	Misses    int64 // Number of cache misses
+	Evictions int64 // Number of entries evicted
+
 }
 
 // newStatistics creates a new statistics tracker
@@ -30,5 +32,5 @@ func (s *Statistics) IncrementHits() {
 }
 
 func (s *Statistics) IncrementMisses() {
-	atomic.AddInt64(&s.Hits, 1)
+	atomic.AddInt64(&s.Misses, 1)
 }
