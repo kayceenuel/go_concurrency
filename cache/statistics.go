@@ -34,3 +34,7 @@ func (s *Statistics) IncrementHits() {
 func (s *Statistics) IncrementMisses() {
 	atomic.AddInt64(&s.Misses, 1)
 }
+
+func (s *Statistics) IncrementEvictions() {
+	atomic.AddInt64(&s.Evictions, 1)
+}
