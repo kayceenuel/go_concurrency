@@ -9,6 +9,7 @@ type Statistics struct {
 	Reads  int64 // Total number of read operations
 	Writes int64 // Total number of write operations
 	Hits   int64 // Number of cache hits
+	Misses int64 // Number of cache misses
 }
 
 // newStatistics creates a new statistics tracker
@@ -25,5 +26,9 @@ func (s *Statistics) IncrementWrites() {
 }
 
 func (s *Statistics) IncrementHits() {
+	atomic.AddInt64(&s.Hits, 1)
+}
+
+func (s *Statistics) IncrementMisses() {
 	atomic.AddInt64(&s.Hits, 1)
 }
