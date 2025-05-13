@@ -57,3 +57,40 @@ func (c *RWMutexCache[K, V]) Put(key K, value V) bool {
 
 	return false
 }
+
+// Get retrieves a value from the cache
+func (c *RWMutexCache[K, V]) Get(key K, value V) (*V, bool) {
+	//frist try a read lock for the lookup
+	c.mu.RLock()
+	entry, exists := c.items[key]
+	c.mu.RUnlock()
+
+	c.stats.IncrementReads()
+
+	if !exists {
+		c.stats.IncrementMisses()
+		return nil, false
+	}
+
+	// Now we need to update the LRU list and Metadata, which requires a write lock
+	c.mu.Lock()
+	//Double-check the entry still exists (it might have been evicted in between locks)
+	entry, stillExist := c.items[key]
+	if !stillExist {
+		c.mu.Unlock()
+		c.stats.IncrementMisses()
+		return nil, false
+	}
+
+	// Update entry metadata
+	entry.accessCount++
+	entry.readAfterWrite = true
+	c.lrulist.moveToFront(key)
+	c.stats.IncrementHits()
+
+	//Make a copy of the value to return
+	value := entry.value
+	c.mu.Unlock()
+
+	return &value, true
+}
