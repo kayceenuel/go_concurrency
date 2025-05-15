@@ -132,5 +132,36 @@ type SharededCache[K comparable, V any] struct {
 }
 
 func NewShardedCache[K comparable, V any](entryLimit int, shardCount int) *SharededCache[K, V] {
+	// Make sure shardCount is a power of 2 for efficient modulo
+	if shardCount&(shardCount-1) != 0 {
+		// Find next power of 2
+		shardCount--
+		shardCount |= shardCount >> 1
+		shardCount |= shardCount >> 2
+		shardCount |= shardCount >> 4
+		shardCount |= shardCount >> 8
+		shardCount |= shardCount >> 16
+		shardCount++
+	}
 
+	entriesPerShard := entryLimit / shardCount
+	if entriesPerShard < 1 {
+		entriesPerShard = 1
+	}
+
+	cache := &SharededCache[K, V]{
+		shards:     make([]*Cache[K, V], shardCount),
+		shardCount: shardCount,
+		shardMask:  shardCount,
+	}
+
+	for i := 0; i < shardCount; i++ {
+		cache.shards[i] = NewCache[K, V](entriesPerShard)
+	}
+
+	// Initialize stats
+	initialStats := newStatistics()
+	cache.stats.Store((initialStats))
+
+	return cache
 }
