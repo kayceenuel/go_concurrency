@@ -2,6 +2,7 @@ package cache
 
 import (
 	"sync"
+	"sync/atomic"
 )
 
 // RWMutexCache implements an LRU cache using RWMutex for improved read performance
@@ -120,4 +121,16 @@ func (c *RWMutexCache[K, V]) GetStatistics() Statistics {
 	stats.CurrentNeverRead = currentNeverRead
 
 	return stats
+}
+
+// SharededCache implements an LRU cache with mutiple shards for reduced lock contention
+type SharededCache[K comparable, V any] struct {
+	shards     []*Cache[K, V]
+	shardCount int
+	shardMask  int
+	stats      atomic.Pointer[Statistics]
+}
+
+func NewShardedCache[K comparable, V any](entryLimit int, shardCount int) *SharededCache[K, V] {
+
 }
