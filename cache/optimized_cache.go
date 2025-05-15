@@ -95,26 +95,26 @@ func (c *RWMutexCache[K, V]) Get(key K, value V) (*V, bool) {
 	return &value, true
 }
 
-//GetStatistics returns consistent statistics about the cache
+// GetStatistics returns consistent statistics about the cache
 func (c *RWMutexCache[K, V]) GetStatistics() Statistics {
 	c.mu.RLock() // Use read lock for statistics
-	defer c.mu.RUnlock() 
+	defer c.mu.RUnlock()
 
-	// Similar to regular Cache.GetStatistics 
-	stats := *c.stats 
+	// Similar to regular Cache.GetStatistics
+	stats := *c.stats
 
 	if len(c.items) > 0 {
-		totalAccesses := 0 
+		totalAccesses := 0
 		for _, e := range c.items {
 			totalAccesses += e.accessCount
 		}
 		stats.AverageAccessCount = float64(totalAccesses) / float64(len(c.items))
 	}
 
-	currentNeverRead := 0 
+	currentNeverRead := 0
 	for _, e := range c.items {
 		if !e.readAfterWrite {
-			currentNeverRead++ 
+			currentNeverRead++
 		}
 	}
 	stats.CurrentNeverRead = currentNeverRead
