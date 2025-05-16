@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"fmt"
 	"sync"
 	"sync/atomic"
 )
@@ -59,9 +60,8 @@ func (c *RWMutexCache[K, V]) Put(key K, value V) bool {
 	return false
 }
 
-// Get retrieves a value from the cache
-func (c *RWMutexCache[K, V]) Get(key K, value V) (*V, bool) {
-	//frist try a read lock for the lookup
+func (c *RWMutexCache[K, V]) Get(key K) (*V, bool) {
+	// First try a read lock for the lookup
 	c.mu.RLock()
 	entry, exists := c.items[key]
 	c.mu.RUnlock()
@@ -75,7 +75,7 @@ func (c *RWMutexCache[K, V]) Get(key K, value V) (*V, bool) {
 
 	// Now we need to update the LRU list and Metadata, which requires a write lock
 	c.mu.Lock()
-	//Double-check the entry still exists (it might have been evicted in between locks)
+	// Double-check the entry still exists (it might have been evicted in between locks)
 	entry, stillExist := c.items[key]
 	if !stillExist {
 		c.mu.Unlock()
@@ -89,11 +89,11 @@ func (c *RWMutexCache[K, V]) Get(key K, value V) (*V, bool) {
 	c.lrulist.moveToFront(key)
 	c.stats.IncrementHits()
 
-	//Make a copy of the value to return
-	value := entry.value
+	// Make a copy of the value to return
+	result := entry.value
 	c.mu.Unlock()
 
-	return &value, true
+	return &result, true
 }
 
 // GetStatistics returns consistent statistics about the cache
@@ -177,8 +177,16 @@ func (c *ShardedCache[K, V]) getShard(key K) *Cache[K, V] {
 // anyToHash converts any comparable to a unit64 hash
 // This is a very simple hash function
 func anyToHash[K comparable](key K) int {
-	//This is just a placeholder that varies based on the memory adderess
-	return int(uintptr((*[2]uintptr)(interface{}(&key))[1]) % 1000)
+	// Using a simple hash function based on fmt.Sprintf and basic string hashing
+	s := fmt.Sprintf("%v", key)
+	h := 0
+	for i := 0; i < len(s); i++ {
+		h = 31*h + int(s[i])
+	}
+	if h < 0 {
+		h = -h
+	}
+	return h
 }
 
 // Put adds a value to the cache
