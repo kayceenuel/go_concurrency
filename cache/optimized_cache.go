@@ -124,14 +124,14 @@ func (c *RWMutexCache[K, V]) GetStatistics() Statistics {
 }
 
 // SharededCache implements an LRU cache with mutiple shards for reduced lock contention
-type SharededCache[K comparable, V any] struct {
+type ShardedCache[K comparable, V any] struct {
 	shards     []*Cache[K, V]
 	shardCount int
 	shardMask  int
 	stats      atomic.Pointer[Statistics]
 }
 
-func NewShardedCache[K comparable, V any](entryLimit int, shardCount int) *SharededCache[K, V] {
+func NewShardedCache[K comparable, V any](entryLimit int, shardCount int) *ShardedCache[K, V] {
 	// Make sure shardCount is a power of 2 for efficient modulo
 	if shardCount&(shardCount-1) != 0 {
 		// Find next power of 2
@@ -149,7 +149,7 @@ func NewShardedCache[K comparable, V any](entryLimit int, shardCount int) *Share
 		entriesPerShard = 1
 	}
 
-	cache := &SharededCache[K, V]{
+	cache := &ShardedCache[K, V]{
 		shards:     make([]*Cache[K, V], shardCount),
 		shardCount: shardCount,
 		shardMask:  shardCount,
@@ -164,4 +164,55 @@ func NewShardedCache[K comparable, V any](entryLimit int, shardCount int) *Share
 	cache.stats.Store((initialStats))
 
 	return cache
+}
+
+// getShard returns the apporpriate shard for a key
+func (c *ShardedCache[K, V]) getShard(key K) *Cache[K, V] {
+	// we need a hash function for the key
+	// This is a simple one; a better implementation would use a good hash function
+	h := anyToHash(key)
+	return c.shards[h&c.shardMask]
+}
+
+// anyToHash converts any comparable to a unit64 hash
+// This is a very simple hash function
+func anyToHash[K comparable](key K) int {
+	//This is just a placeholder that varies based on the memory adderess
+	return int(uintptr((*[2]uintptr)(interface{}(&key))[1]) % 1000)
+}
+
+// Put adds a value to the cache
+func (c *ShardedCache[K, V]) Put(key K, value V) bool {
+	return c.getShard(key).Put(key, value)
+}
+
+// Get retrieves a value from the cache
+func (c *ShardedCache[K, V]) Get(key K) (*V, bool) {
+	return c.getShard(key).Get(key)
+}
+
+// GetStatistics returns aggregate statistics about the cache
+func (c *ShardedCache[K, V]) GetStatistics() Statistics {
+	// Collect stats from all shards
+	aggregateStats := Statistics{}
+
+	for _, shard := range c.shards {
+		shardStats := shard.GetStatistics()
+
+		// Aggregate counters
+		aggregateStats.Reads += shardStats.Reads
+		aggregateStats.Writes += shardStats.Writes
+		aggregateStats.Hits += shardStats.Hits
+		aggregateStats.Misses += shardStats.Misses
+		aggregateStats.Evictions += shardStats.Evictions
+		aggregateStats.NeverReadCount += shardStats.NeverReadCount
+		aggregateStats.CurrentNeverRead += shardStats.CurrentNeverRead
+	}
+
+	// Calculate hit rate
+	if aggregateStats.Reads > 0 {
+		aggregateStats.AverageAccessCount = float64(aggregateStats.Hits) / float64(c.shardCount)
+	}
+
+	return aggregateStats
 }
