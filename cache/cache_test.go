@@ -59,3 +59,41 @@ func TestBasicCacheOperations(t *testing.T) {
 		t.Error("Key 'two' should not have been evicted")
 	}
 }
+
+func TestCacheStatistics(t *testing.T) {
+	cache := NewCache[string, int](3)
+
+	//Add some items
+	cache.Put("one", 1)
+	cache.Put("two", 2)
+	cache.Put("three", 3)
+
+	//Get some items
+	cache.Get("one")
+	cache.Get("two")
+	cache.Get("missing") // This is a miss
+
+	// Check statistics
+	stats := cache.GetStatistics()
+
+	if stats.Reads != 3 {
+		t.Errorf("Expected 3 reads, got %d", stats.Reads)
+	}
+
+	if stats.Writes != 3 {
+		t.Errorf("Expected 3 writes, got %d", stats.Writes)
+	}
+
+	if stats.Hits != 2 {
+		t.Errorf("Expected 2 hits, got %d", stats.Hits)
+	}
+
+	if stats.Misses != 1 {
+		t.Errorf("Expected 1 miss, got %d", stats.Misses)
+	}
+
+	// Test hit rate
+	if stats.GetHitRate() != 2.0/3.0 {
+		t.Errorf("Expected hit rate 2/3, got %f", stats.GetHitRate())
+	}
+}
