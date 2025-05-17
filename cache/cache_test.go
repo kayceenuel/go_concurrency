@@ -96,4 +96,12 @@ func TestCacheStatistics(t *testing.T) {
 	if stats.GetHitRate() != 2.0/3.0 {
 		t.Errorf("Expected hit rate 2/3, got %f", stats.GetHitRate())
 	}
+
+	// Test never read
+	cache.Put("four", 4) // should evict "three" which was never read
+	stats = cache.GetStatistics()
+
+	if stats.NeverReadCount != 1 {
+		t.Errorf("Expected 1 never read item, got %d", stats.NeverReadCount)
+	}
 }
