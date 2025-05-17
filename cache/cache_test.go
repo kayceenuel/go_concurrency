@@ -105,3 +105,25 @@ func TestCacheStatistics(t *testing.T) {
 		t.Errorf("Expected 1 never read item, got %d", stats.NeverReadCount)
 	}
 }
+
+func TestRWMtexCache(t *testing.T) {
+	cache := NewRWMutexCache[string, int](3)
+
+	// Same basic test as regular cache
+	cache.Put("one", 1)
+	val, found := cache.Get("one")
+
+	if !found || *val != 1 {
+		t.Error("Basic RWMutexCache operations failed")
+	}
+
+	// Test LRU eviction
+	cache.Put("two", 2)
+	cache.Put("three", 3)
+	cache.Put("four", 4)
+
+	_, found = cache.Get("one")
+	if found {
+		t.Error("Key 'one' should have been ev")
+	}
+}
