@@ -102,3 +102,40 @@ func TestConcurrentRWMutexCache(t *testing.T) {
 			expectedOps, stats.Reads, stats.Writes)
 	}
 }
+
+// TestConcurrentShardedCache tests the sharded implementation
+func TestConcurrentShardedCache(t *testing.T) {
+	// Create cache with 100 entries divided across 8 shards
+	cache := NewShardedCache[string, int](100, 8)
+
+	var wg sync.WaitGroup
+	numWorkers := 20
+	opsPerWorker := 1000
+
+	// Launch multiple goroutines to perform random operations
+	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
+		go func(workerID int) {
+			defer wg.Done()
+			for j := 0; j < opsPerWorker; j++ {
+				// Use different key ranges for different workers to test sharding
+				key := fmt.Sprintf("worker%d-key%d", workerID, j%50)
+				if j%2 == 0 {
+					cache.Put(key, j)
+				} else {
+					_, _ = cache.Get(key)
+				}
+			}
+		}(i)
+	}
+
+	wg.Wait()
+
+	// Verify we have sensible statistics
+	stats := cache.GetStatistics()
+	expectedOps := numWorkers * opsPerWorker
+	if int(stats.Reads)+int(stats.Writes) != expectedOps {
+		t.Errorf("Expected %d total operations, got %d reads and %d writes",
+			expectedOps, stats.Reads, stats.Writes)
+	}
+}
