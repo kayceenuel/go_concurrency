@@ -1,3 +1,3 @@
-module github.com/kayceenuel/concurrency
+module concurrency
 
 go 1.23.4
