@@ -2,6 +2,8 @@ package main
 
 import (
 	"concurrency/cache"
+	"concurrency/exercises/atomics"
+	"concurrency/exercises/buggy"
 	"fmt"
 	"sync"
 	"time"
@@ -14,24 +16,24 @@ func main() {
 	// 1. Run single variable concurrency examples
 	fmt.Println("\n--- Single Variable Concurrency Examples ---")
 	fmt.Println("Buggy increment (race condition):")
-	buggy.runBuggyIncrement()
+	buggy.RunBuggyIncrement()
 
 	fmt.Println("\nFixed with atomic operations:")
-	atomics.runAtomicIncremen()
+	atomics.RunAtomicIncrement()
 
 	fmt.Println("\nFixed with mutex:")
-	atomics.runMutexIncrement()
+	atomics.RunMutexIncrement()
 
 	// 2. Basic LRU Cache example.
-	fmt.Println("\n--- Concurrent Cache Usage ---")
+	fmt.Println("\n--- Basic Cache Usage ---")
 	demoBasicCache()
 
 	//3. Concurrent Cache Usage
 	fmt.Println("\n--- Concurrent Cache Usage ---")
 	demoConcurrentCache()
 
-	// 4. performance Comparsion
-	fmt.Println("\n--- Performance Comparsion ---")
+	// 4. performance Comparison
+	fmt.Println("\n--- Performance Comparison ---")
 	compareImplementations()
 }
 
@@ -49,8 +51,8 @@ func demoBasicCache() {
 		fmt.Printf("Name: %s\n", *name)
 	}
 
-	if lang, found := c.Get("Lanugage"); found {
-		fmt.Print("Language: %s\n", *lang)
+	if lang, found := c.Get("language"); found {
+		fmt.Printf("Language: %s\n", *lang)
 	}
 
 	// Add one more item (should evict "name" since it was least recently used)
@@ -65,8 +67,8 @@ func demoBasicCache() {
 	stats := c.GetStatistics()
 	fmt.Printf("Cache Statistics:\n")
 	fmt.Printf("  Reads: %d\n", stats.Reads)
-	fmt.Print("   Writes: %d\n", stats.Writes)
-	fmt.Printf("  Hit Rate: %.2f\n", stats.GetHitRate())
+	fmt.Printf("  Writes: %d\n", stats.Writes)
+	fmt.Printf("  Hit Rate: %.2f%%\n", getHitRate(stats))
 }
 
 func demoConcurrentCache() {
@@ -92,13 +94,13 @@ func demoConcurrentCache() {
 				// Read back (should be in cache)
 				if val, found := c.Get(key); found {
 					if *val != id*100+j {
-						fmt.Print("ERROR: Expected %d, got %d\n", id*100+j, *val)
+						fmt.Printf("ERROR: Expected %d, got %d\n", id*100+j, *val)
 					}
 				} else {
 					fmt.Printf("ERROR: Key %s not found\n", key)
 				}
 
-				// Read someone else's key (mgiht be a miss)
+				// Read someone else's key (might be a miss) - Fixed typo: "mgiht" -> "might"
 				otherKey := fmt.Sprintf("worker%d-key%d", (id+1)%numWorkers, j%10)
 				c.Get(otherKey)
 			}
@@ -114,11 +116,11 @@ func demoConcurrentCache() {
 	fmt.Printf("  Writes: %d\n", stats.Writes)
 	fmt.Printf("  Hits: %d\n", stats.Hits)
 	fmt.Printf("  Misses: %d\n", stats.Misses)
-	fmt.Printf("  Hit Rate: %.2f\n", stats.GetHitRate())
+	fmt.Printf("  Hit Rate: %.2f%%\n", getHitRate(stats))
 }
 
 func compareImplementations() {
-	// Create different implamentations with same capacity
+	// Create different implementations with same capacity
 	capacity := 100
 	regularCache := cache.NewCache[string, int](capacity)
 	rwCache := cache.NewRWMutexCache[string, int](capacity)
@@ -126,7 +128,7 @@ func compareImplementations() {
 
 	// Run benchmarks
 	fmt.Println("Running write-heavy workload...")
-	benchmarkCache("Regualar Cache (Mutex)", regularCache, 0.8)
+	benchmarkCache("Regular Cache (Mutex)", regularCache, 0.8)
 	benchmarkCache("RWMutex Cache", rwCache, 0.8)
 	benchmarkCache("Sharded Cache", shardedCache, 0.8)
 
@@ -138,7 +140,7 @@ func compareImplementations() {
 
 // Interface to allow benchmarking different cache implementation
 type CacheBenchmark interface {
-	Put(Key string, value int) bool
+	Put(key string, value int) bool
 	Get(key string) (*int, bool)
 }
 
@@ -163,7 +165,7 @@ func benchmarkCache(name string, c CacheBenchmark, writePct float32) {
 
 			opsPerWorker := numOps / numWorkers
 			for j := 0; j < opsPerWorker; j++ {
-				// Detemine operation based on write percentage
+				// Determine operation based on write percentage
 				isWrite := (float64(j%100) / 100.0) < float64(writePct)
 
 				key := fmt.Sprintf("key%d", j%1000)
@@ -182,4 +184,12 @@ func benchmarkCache(name string, c CacheBenchmark, writePct float32) {
 
 	opsPerSec := float64(numOps) / elapsed.Seconds()
 	fmt.Printf("%s: %.0f ops/sec\n", name, opsPerSec)
+}
+
+// Helper function to calculate hit rate
+func getHitRate(stats cache.Statistics) float64 {
+	if stats.Reads == 0 {
+		return 0.0
+	}
+	return (float64(stats.Hits) / float64(stats.Reads)) * 100.0
 }
