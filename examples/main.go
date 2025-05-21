@@ -58,4 +58,11 @@ func demoBasicCache() {
 	if _, found := c.Get("name"); !found {
 		fmt.Println("'name' was correctly evicted")
 	}
+
+	//Print statistics
+	stats := c.GetStatistics()
+	fmt.Printf("Cache Statistics:\n")
+	fmt.Printf("  Reads: %d\n", stats.Reads)
+	fmt.Print("   Writes: %d\n", stats.Writes)
+	fmt.Printf("  Hit Rate: %.2f\n", stats.GetHitRate())
 }
