@@ -4,6 +4,7 @@ import (
 	"concurrency/cache"
 	"fmt"
 	"sync"
+	"time"
 )
 
 func main() {
@@ -139,4 +140,46 @@ func compareImplementations() {
 type CacheBenchmark interface {
 	Put(Key string, value int) bool
 	Get(key string) (*int, bool)
+}
+
+func benchmarkCache(name string, c CacheBenchmark, writePct float32) {
+	numOps := 100000
+	numWorkers := 8
+
+	// Pre-populate with same values
+	for i := 0; i < 1000; i++ {
+		key := fmt.Sprintf("key%d", i)
+		c.Put(key, i)
+	}
+
+	// Start timing
+	start := time.Now()
+
+	var wg sync.WaitGroup
+	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+
+			opsPerWorker := numOps / numWorkers
+			for j := 0; j < opsPerWorker; j++ {
+				// Detemine operation based on write percentage
+				isWrite := (float64(j%100) / 100.0) < float64(writePct)
+
+				key := fmt.Sprintf("key%d", j%1000)
+
+				if isWrite {
+					c.Put(key, id*j)
+				} else {
+					c.Get(key)
+				}
+			}
+		}(i)
+	}
+
+	wg.Wait()
+	elapsed := time.Since(start)
+
+	opsPerSec := float64(numOps) / elapsed.Seconds()
+	fmt.Printf("%s: %.0f ops/sec\n", name, opsPerSec)
 }
