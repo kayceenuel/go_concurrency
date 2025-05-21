@@ -133,10 +133,10 @@ func compareImplementations() {
 	benchmarkCache("Regular Cache (Mutex)", regularCache, 0.2)
 	benchmarkCache("RWMutex Cache", rwCache, 0.2)
 	benchmarkCache("Sharded Cache", shardedCache, 0.2)
+}
 
-	// Interface to allow benchmarking different cache implementation
-	type CacheBenchmark interface {
-		Put(Key string, value int) bool
-		Get(key string) (*int, bool)
-	}
+// Interface to allow benchmarking different cache implementation
+type CacheBenchmark interface {
+	Put(Key string, value int) bool
+	Get(key string) (*int, bool)
 }
