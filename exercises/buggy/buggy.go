@@ -10,11 +10,11 @@ func main() {
 	fmt.Println("Running buggy increment example 5 times:")
 	for i := 0; i < 5; i++ {
 		fmt.Printf("Run %d: ", i+1)
-		runBuggyIncrement()
+		RunBuggyIncrement()
 	}
 }
 
-func runBuggyIncrement() {
+func RunBuggyIncrement() {
 	var x = 0
 	var wg sync.WaitGroup
 

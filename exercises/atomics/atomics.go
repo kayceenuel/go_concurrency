@@ -12,19 +12,19 @@ func main() {
 	// Run the buggy version for comparison
 	fmt.Println("\nBuggy increment (with race condition):")
 	for i := 0; i < 3; i++ {
-		runBuggyIncrement()
+		RunBuggyIncrement()
 	}
 
 	// Run the atomic version
 	fmt.Println("\nAtomic increment (thread-safe):")
 	for i := 0; i < 3; i++ {
-		runAtomicIncrement()
+		RunAtomicIncrement()
 	}
 
 	// Run the mutex version
 	fmt.Println("\nMutex increment (thread-safe):")
 	for i := 0; i < 3; i++ {
-		runMutexIncrement()
+		RunMutexIncrement()
 	}
 
 	fmt.Println("\nExplanation:")
@@ -34,7 +34,7 @@ func main() {
 }
 
 // Buggy increment - has a race condition
-func runBuggyIncrement() {
+func RunBuggyIncrement() {
 	var x = 0
 	var wg sync.WaitGroup
 
@@ -51,7 +51,7 @@ func runBuggyIncrement() {
 }
 
 // Atomic increment - uses atomic operations
-func runAtomicIncrement() {
+func RunAtomicIncrement() {
 	var x atomic.Int64
 	var wg sync.WaitGroup
 
@@ -68,7 +68,7 @@ func runAtomicIncrement() {
 }
 
 // Mutex increment - uses a mutex
-func runMutexIncrement() {
+func RunMutexIncrement() {
 	var x = 0
 	var mu sync.Mutex
 	var wg sync.WaitGroup
