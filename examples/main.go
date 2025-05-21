@@ -115,3 +115,28 @@ func demoConcurrentCache() {
 	fmt.Printf("  Misses: %d\n", stats.Misses)
 	fmt.Printf("  Hit Rate: %.2f\n", stats.GetHitRate())
 }
+
+func compareImplementations() {
+	// Create different implamentations with same capacity
+	capacity := 100
+	regularCache := cache.NewCache[string, int](capacity)
+	rwCache := cache.NewRWMutexCache[string, int](capacity)
+	shardedCache := cache.NewShardedCache[string, int](capacity, 8)
+
+	// Run benchmarks
+	fmt.Println("Running write-heavy workload...")
+	benchmarkCache("Regualar Cache (Mutex)", regularCache, 0.8)
+	benchmarkCache("RWMutex Cache", rwCache, 0.8)
+	benchmarkCache("Sharded Cache", shardedCache, 0.8)
+
+	fmt.Println("\nRunning read-heavy workload...")
+	benchmarkCache("Regular Cache (Mutex)", regularCache, 0.2)
+	benchmarkCache("RWMutex Cache", rwCache, 0.2)
+	benchmarkCache("Sharded Cache", shardedCache, 0.2)
+
+	// Interface to allow benchmarking different cache implementation
+	type CacheBenchmark interface {
+		Put(Key string, value int) bool
+		Get(key string) (*int, bool)
+	}
+}
