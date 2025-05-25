@@ -73,3 +73,53 @@ go test -race ./cache
 🔹 Sharded cache for high concurrency
 
 - Detailed statistics tracking: Hits, misses, evictions, and access patterns
+
+## Usage Example 
+// Create a cache with max 100 items
+cache := NewCache[string, int](100)
+
+// Thread-safe operations
+cache.Put("user:123", 42)
+value, found := cache.Get("user:123")
+
+// Performance statistics
+stats := cache.GetStatistics()
+fmt.Printf("Hit rate: %.2f%%\n", stats.GetHitRate() * 100)
+
+## Learning Roadmap
+### Race Conditions
+
+- Why concurrent code breaks ❌
+
+- How to spot race conditions 🔍
+
+- Fixing with atomic operations & mutexes ✅
+
+### Building the Cache
+
+- Implement LRU logic ⚙️
+
+- Make it thread-safe 🚀
+
+- Track detailed statistics 📊
+
+### Optimization
+
+- Use RWMutex for better read performance ⚡
+
+- Reduce lock contention with sharding 🏆
+
+- Run benchmarks & analyze performance 📈
+
+## Testing
+Always test concurrent code with race detection:
+```bash
+# Basic tests
+go test ./cache
+
+# Race detection (catches bugs!)
+go test -race ./cache
+
+# Benchmarks
+go test -bench=. ./cache
+``` 
