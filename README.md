@@ -4,18 +4,37 @@ Ever tried building a web service only to find multiple users crashing your app 
 # What You'll Build 
 A production-ready LRU (Least Recently Used) cache that can handle thousands of concurrent operations safely. You'll start with broken code and fix it step by step.
 
-# Setup
-git clone https://github.com/kayceenuel/go_concurrency.git
+
+---
+
+## 🛠 Setup
+```bash
+git clone <your-repo>
 cd concurrency-project
 go mod tidy
 
-# Project Structure
+
+## 📂 Project Structure
+```plaintext
 concurrency-project/
-├── exercises/
-│   ├── buggy/main.go        # Broken concurrent code
-│   └── atomics/main.go      # Fixed versions
-├── cache/
-│   ├── cache.go             # Main LRU implementation  
-│   ├── statistics.go        # Thread-safe stats
-│   └── *_test.go           # Tests
-└── examples/main.go         # Usage examples
+├── exercises/         # Hands-on learning exercises
+│   ├── buggy/        # Faulty concurrent code with race conditions ❌
+│   ├── atomics/      # Fixed versions using atomic operations ✅
+│   ├── mutex/        # Basic Mutex-based synchronization
+│   ├── rwmutex/      # Optimized Read-Write Mutex handling
+
+├── cache/            # Core LRU cache logic
+│   ├── cache.go      # Implements thread-safe LRU eviction
+│   ├── optimized.go  # RWMutex & sharding for better performance
+│   ├── statistics.go # Tracks cache hit/miss metrics
+│   ├── *_test.go     # Unit tests ensuring concurrency safety
+
+├── examples/         # Demonstrations & benchmarks
+│   ├── main.go       # Usage examples & performance benchmarking
+
+├── docs/             # Documentation & diagrams
+│   ├── concurrency_flowchart.png  # Visual explanation of cache workflow
+│   ├── performance_comparison.md  # Benchmark results & analysis
+
+├── README.md         # Project overview & instructions 📜
+└── go.mod            # Go module dependencies
