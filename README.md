@@ -9,13 +9,13 @@ A production-ready LRU (Least Recently Used) cache that can handle thousands of 
 
 ## 🛠 Setup
 ```bash
-git clone <your-repo>
+git clone [text](https://github.com/kayceenuel/go_concurrency.git)
 cd concurrency-project
 go mod tidy
 
 
 ## 📂 Project Structure
-```plaintext
+
 concurrency-project/
 ├── exercises/         # Hands-on learning exercises
 │   ├── buggy/        # Faulty concurrent code with race conditions ❌
@@ -38,3 +38,38 @@ concurrency-project/
 
 ├── README.md         # Project overview & instructions 📜
 └── go.mod            # Go module dependencies
+
+``` 
+# Quick Start 
+See the Problems 
+
+```bash 
+go run exercises/buggy/main.go
+``` 
+See the Solution
+```bash 
+go run exercises/atomics/main.go
+ 
+``` 
+Run full demo: 
+```bash 
+go run examples/main.go
+```
+Run all tests (including race detection):
+```bash 
+go test -race ./cache
+``` 
+## Core Features
+- Thread-safe LRU Cache: Concurrent read/write operations without corruption
+
+- Automatic eviction: Least recently used items removed when cache is full
+
+### Multiple implementations:
+
+🔹 Basic Mutex-based cache
+
+🔹 Optimized RWMutex cache for read-heavy workloads
+
+🔹 Sharded cache for high concurrency
+
+- Detailed statistics tracking: Hits, misses, evictions, and access patterns
