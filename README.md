@@ -1,0 +1,2 @@
+# Go Concurrency & Thread-Safe LRU Cache
+Ever tried building a web service only to find multiple users crashing your app due to bad thread handling? This project teaches you how to make concurrency work for you, not against you. Learn Go concurrency by building a thread-safe LRU cache from scratch. This project covers race conditions, synchronization, and performance optimization through hands-on coding.
